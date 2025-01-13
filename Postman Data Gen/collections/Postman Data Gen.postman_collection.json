@@ -1,0 +1,257 @@
+{
+	"info": {
+		"_postman_id": "a463aa10-5a65-4bc6-8a5b-d32b88410c68",
+		"name": "Postman Data Gen",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "45251555",
+		"_collection_link": "https://pete2157.postman.co/workspace/Team-Workspace~972e4916-bda4-46a9-8d54-ce6bf2f517ae/collection/45251555-a463aa10-5a65-4bc6-8a5b-d32b88410c68?action=share&source=collection_link&creator=45251555"
+	},
+	"item": [
+        {
+            "name": "Task 1: Date Manipulation with Moment.js",
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [
+                            "// The 'moment' library is available in the Postman sandbox",
+                            "console.log('Task 1 Pre-request: Generating dates with Moment.js');",
+                            "",
+                            "const now = moment();",
+                            "const tomorrow = moment().add(1, 'days');",
+                            "const nextWeek = moment().add(7, 'days');",
+                            "const firstDayNextMonth = moment().add(1, 'month').startOf('month');",
+                            "",
+                            "const eventData = {",
+                            "    eventName: 'Future Event ' + pm.variables.replaceIn('{{$randomInt}}'),",
+                            "    currentTimestamp: now.toISOString(),",
+                            "    eventDate: tomorrow.format('YYYY-MM-DD'),",
+                            "    registrationDeadline: nextWeek.format('MMMM Do YYYY, h:mm:ss a'),",
+                            "    launchMonth: firstDayNextMonth.format('YYYY-MM')",
+                            "};",
+                            "",
+                            "pm.environment.set('generatedEventData', JSON.stringify(eventData));",
+                            "console.log('Generated Event Data:', eventData);"
+                        ],
+                        "type": "text/javascript"
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "",
+                            "const echoResponse = pm.response.json();",
+                            "const sentData = JSON.parse(pm.environment.get('generatedEventData'));",
+                            "",
+                            "pm.test(\"Echoed eventName matches sent data\", function() {",
+                            "    pm.expect(echoResponse.json.eventName).to.eql(sentData.eventName);",
+                            "});",
+                            "",
+                            "pm.test(\"Echoed eventDate (YYYY-MM-DD) is correctly formatted\", function() {",
+                            "    pm.expect(echoResponse.json.eventDate).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);",
+                            "    pm.expect(echoResponse.json.eventDate).to.eql(sentData.eventDate);",
+                            "});",
+                            "",
+                            "pm.test(\"Echoed registrationDeadline matches sent data\", function() {",
+                            "    pm.expect(echoResponse.json.registrationDeadline).to.eql(sentData.registrationDeadline);",
+                            "});",
+                            "",
+                            "pm.test(\"Echoed currentTimestamp is a valid ISO string\", function() {",
+                            "    // Validate if it's a valid ISO 8601 date string using Moment.js itself",
+                            "    pm.expect(moment(echoResponse.json.currentTimestamp, moment.ISO_8601, true).isValid()).to.be.true;",
+                            "});",
+                            "console.log('Moment.js test data reflected by Echo:', echoResponse.json);"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [ { "key": "Content-Type", "value": "application/json" } ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{{generatedEventData}}"
+                },
+                "url": {
+                    "raw": "{{echoBaseUrl}}/post",
+                    "host": [ "{{echoBaseUrl}}" ],
+                    "path": [ "post" ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Task 2: Data Transformation with Lodash",
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [
+                            "// The '_' (Lodash) library is available in the Postman sandbox",
+                            "console.log('Task 2 Pre-request: Transforming data with Lodash');",
+                            "",
+                            "const rawUserData = [",
+                            "    { id: 1, name: 'Alice Wonderland', age: 30, active: true, tags: ['user', 'dreamer'] },",
+                            "    { id: 2, name: 'Bob The Builder', age: 45, active: false, tags: ['user', 'constructor'] },",
+                            "    { id: 3, name: 'Charlie Chaplin', age: 25, active: true, tags: ['user', 'comedian', 'actor'] },",
+                            "    { id: 4, name: 'Diana Prince', age: 35, active: true, tags: ['user', 'hero'] }",
+                            "];",
+                            "",
+                            "// Example transformations using Lodash",
+                            "const activeUserNames = _.chain(rawUserData)",
+                            "    .filter({ active: true })",
+                            "    .map('name')",
+                            "    .join(', ')",
+                            "    .value();",
+                            "",
+                            "const userWithMostTags = _.maxBy(rawUserData, user => user.tags.length);",
+                            "const firstUserById = _.keyBy(rawUserData, 'id')['1']; // Get user with ID 1",
+                            "",
+                            "const transformedPayload = {",
+                            "    summary: `Found ${rawUserData.length} users. Active users: ${activeUserNames}.`,",
+                            "    userWithMostTagsName: _.get(userWithMostTags, 'name', 'N/A'),",
+                            "    detailsForUser1: {",
+                            "        name: _.get(firstUserById, 'name'),",
+                            "        tags: _.get(firstUserById, 'tags')",
+                            "    },",
+                            "    allUserAges: _.map(rawUserData, 'age')",
+                            "};",
+                            "",
+                            "pm.environment.set('transformedData', JSON.stringify(transformedPayload));",
+                            "console.log('Transformed Payload (to be sent):', transformedPayload);"
+                        ],
+                        "type": "text/javascript"
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "",
+                            "const echoResponse = pm.response.json();",
+                            "const sentData = JSON.parse(pm.environment.get('transformedData'));",
+                            "",
+                            "pm.test(\"Echoed summary matches transformed summary\", function() {",
+                            "    pm.expect(echoResponse.json.summary).to.eql(sentData.summary);",
+                            "});",
+                            "",
+                            "pm.test(\"Echoed userWithMostTagsName matches transformed data\", function() {",
+                            "    pm.expect(echoResponse.json.userWithMostTagsName).to.eql(sentData.userWithMostTagsName);",
+                            "});",
+                            "",
+                            "pm.test(\"Echoed detailsForUser1 correctly\", function() {",
+                            "    pm.expect(echoResponse.json.detailsForUser1.name).to.eql(sentData.detailsForUser1.name);",
+                            "    pm.expect(echoResponse.json.detailsForUser1.tags).to.deep.equal(sentData.detailsForUser1.tags);",
+                            "});",
+                            "",
+                            "pm.test(\"Echoed allUserAges matches sent data\", function() {",
+                            "    pm.expect(echoResponse.json.allUserAges).to.deep.equal(sentData.allUserAges);",
+                            "});",
+                            "console.log('Lodash transformed data reflected by Echo:', echoResponse.json);"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [ { "key": "Content-Type", "value": "application/json" } ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{{transformedData}}"
+                },
+                "url": {
+                    "raw": "{{echoBaseUrl}}/post",
+                    "host": [ "{{echoBaseUrl}}" ],
+                    "path": [ "post" ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Task 3: Dynamic User Data Generation for ReqRes",
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [
+                            "console.log('Task 3 Pre-request: Generating dynamic user data for ReqRes');",
+                            "",
+                            "const randomFirstName = pm.variables.replaceIn('{{$randomFirstName}}');",
+                            "const randomLastName = pm.variables.replaceIn('{{$randomLastName}}');",
+                            "const randomJob = pm.variables.replaceIn('{{$randomJobTitle}}');",
+                            "const randomEmail = pm.variables.replaceIn('{{$randomEmail}}'); // Not used by ReqRes POST /users, but good to generate",
+                            "",
+                            "const dynamicUser = {",
+                            "    name: randomFirstName + ' ' + randomLastName,",
+                            "    job: randomJob,",
+                            "    emailForReference: randomEmail, // Will not be sent to ReqRes /users, just for our info",
+                            "    timestamp: new Date().toISOString()",
+                            "};",
+                            "",
+                            "// Set as an environment variable to be used in the request body",
+                            "pm.environment.set('generatedUserData', JSON.stringify(dynamicUser)); ",
+                            "// Store only name and job for the actual request body to ReqRes",
+                            "pm.environment.set('reqresUserPayload', JSON.stringify({ name: dynamicUser.name, job: dynamicUser.job }));",
+                            "",
+                            "console.log('Dynamically Generated User Data:', dynamicUser);",
+                            "console.log('Payload for ReqRes:', pm.environment.get('reqresUserPayload'));"
+                        ],
+                        "type": "text/javascript"
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 201 - Created\", function () {",
+                            "    pm.response.to.have.status(201);",
+                            "});",
+                            "",
+                            "const responseJson = pm.response.json();",
+                            "const sentPayload = JSON.parse(pm.environment.get('reqresUserPayload'));",
+                            "",
+                            "pm.test(\"Response name matches generated name\", function() {",
+                            "    pm.expect(responseJson.name).to.eql(sentPayload.name);",
+                            "});",
+                            "",
+                            "pm.test(\"Response job matches generated job\", function() {",
+                            "    pm.expect(responseJson.job).to.eql(sentPayload.job);",
+                            "});",
+                            "",
+                            "pm.test(\"Response contains ID and createdAt\", function () {",
+                            "    pm.expect(responseJson.id).to.exist.and.to.not.be.empty;",
+                            "    pm.expect(responseJson.createdAt).to.exist.and.to.not.be.empty;",
+                            "});",
+                            "console.log('ReqRes response for dynamically generated user:', responseJson);"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [ { "key": "Content-Type", "value": "application/json" } ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{{reqresUserPayload}}"
+                },
+                "url": {
+                    "raw": "{{reqresBaseUrl}}/users",
+                    "host": [ "{{reqresBaseUrl}}" ],
+                    "path": [ "users" ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "variable": []
+}
